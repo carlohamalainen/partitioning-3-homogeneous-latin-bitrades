@@ -1,0 +1,20 @@
+% Printable (PDF) version of the blueprint, compiled with xelatex via latexmk.
+\documentclass[a4paper]{report}
+
+\usepackage{geometry}
+\usepackage{expl3}
+\usepackage{amssymb, amsthm, mathtools}
+\usepackage[unicode,colorlinks=true,linkcolor=blue,urlcolor=magenta, citecolor=blue]{hyperref}
+\usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
+
+\input{macros/common}
+\input{macros/print}
+
+\title{Partitioning 3-homogeneous latin bitrades: a Lean blueprint}
+\author{Carlo H\"am\"al\"ainen}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\input{content}
+\end{document}

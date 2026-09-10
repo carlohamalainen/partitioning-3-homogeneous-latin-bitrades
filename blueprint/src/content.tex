@@ -1,0 +1,325 @@
+% Content shared by the web and print versions.
+%
+% Each statement carries:
+%   \lean{Name, Name, ...}   the Lean declaration(s) that formalise it
+%   \leanok                  the statement (or, inside a proof, the proof) is formalised
+%   \uses{label, ...}        dependencies, which become edges of the dependency graph
+% Statements without \leanok show up in the dependency graph as not yet
+% formalised. Two such placeholders are included below on purpose.
+%
+% A proof must come AFTER \end{theorem} (not inside it): the dependency-graph
+% plugin attaches a proof to the environment that precedes it. Only then do
+% the proof's \uses become graph edges and its \leanok fill the node green.
+
+\chapter{Introduction}
+
+This blueprint links the statements of \emph{Partitioning 3-homogeneous
+latin bitrades} (arXiv:0710.0938) to their formal counterparts in the Lean 4
+project \texttt{Partitioning3Homogeneous}. Every numbered statement below
+names the Lean declaration that formalises it, and the dependency graph
+records which statements are used to prove which.
+
+Two conventions differ between the paper and Lean.
+\begin{itemize}
+  \item The paper lets permutations act on the right, so $x\tau_1\tau_2$
+    means ``apply $\tau_1$, then $\tau_2$''. Lean's \texttt{Equiv.Perm}
+    composes right to left, so the same composite is written
+    \texttt{tau2 * tau1}. In particular (T1), $\tau_1\tau_2\tau_3 = 1$, is
+    the Lean statement \texttt{tauSymbol * tauColumn * tauRow = 1}.
+  \item The paper works with $n \times n$ arrays. Lean works with arbitrary
+    finite index types for rows, columns, and symbols, and 3-homogeneity is
+    required of every element of those types. A bitrade with empty rows must
+    be re-indexed before the main theorem applies.
+\end{itemize}
+
+\chapter{Latin bitrades}
+
+\begin{definition}[Partial Latin square]\label{def:partial-latin}
+  \lean{LatinBitrade.Entry, LatinBitrade.IsPartialLatin}\leanok
+  A \emph{partial Latin square} is a set $T \subseteq A_1 \times A_2 \times A_3$
+  of entries $(i, j, k)$, read as ``symbol $k$ in row $i$ and column $j$'',
+  such that two entries agreeing in any two coordinates agree in the third.
+\end{definition}
+
+\begin{definition}[Latin bitrade; Definition 2.1]\label{def:bitrade}
+  \lean{LatinBitrade.HasUniqueMates, LatinBitrade.IsBitrade}\leanok
+  \uses{def:partial-latin}
+  Let $\Tpos, \Tneg$ be partial Latin squares. The pair $(\Tpos, \Tneg)$
+  is a \emph{bitrade} if
+  \begin{itemize}
+    \item[(R1)] $\Tpos \cap \Tneg = \emptyset$;
+    \item[(R2)] for all $(a_1, a_2, a_3) \in \Tpos$ and all $r \neq s$ there is
+      a unique $(b_1, b_2, b_3) \in \Tneg$ with $a_r = b_r$ and $a_s = b_s$;
+    \item[(R3)] the same with $\Tpos$ and $\Tneg$ exchanged.
+  \end{itemize}
+  In Lean, (R2) and (R3) are \texttt{HasUniqueMates positive negative} and
+  \texttt{HasUniqueMates negative positive}.
+\end{definition}
+
+\begin{definition}[$k$-homogeneous]\label{def:homogeneous}
+  \lean{LatinBitrade.IsKHomogeneous}\leanok
+  A bitrade is \emph{$k$-homogeneous} if every row and every column of
+  $\Tpos$ contains $k$ entries and every symbol occurs $k$ times in $\Tpos$.
+\end{definition}
+
+\begin{definition}[Transversal]\label{def:transversal}
+  \lean{LatinBitrade.IsTransversal, LatinBitrade.IsThreeTransversalPartition}\leanok
+  A set $X \subseteq \Tpos$ is a \emph{transversal} if it meets each row and
+  each column of $\Tpos$ in exactly one entry and
+  $\lvert \{ k \mid (i, j, k) \in X \} \rvert = \lvert X \rvert$.
+  \texttt{IsThreeTransversalPartition} packages three transversals which
+  are pairwise disjoint and cover $\Tpos$.
+\end{definition}
+
+\begin{definition}[The mate bijections $\beta_r$]\label{def:beta}
+  \lean{LatinBitrade.Canonical.beta₁, LatinBitrade.Canonical.beta₂, LatinBitrade.Canonical.beta₃}\leanok
+  \uses{def:bitrade}
+  For $r \in \{1, 2, 3\}$ define $\beta_r \colon \Tneg \to \Tpos$ by
+  $(a_1, a_2, a_3)\beta_r = (b_1, b_2, b_3)$ if and only if $a_r \neq b_r$
+  and $a_i = b_i$ for $i \neq r$. By (R2) and (R3) each $\beta_r$ is a
+  bijection. In Lean the bijections are built from the unique-mate clauses
+  with \texttt{mateEquivBy}; the inequality $a_r \neq b_r$ follows from (R1).
+\end{definition}
+
+\begin{definition}[The $\tau_i$ representation; Equation (1)]\label{def:tau}
+  \lean{LatinBitrade.Canonical.tauRow, LatinBitrade.Canonical.tauColumn, LatinBitrade.Canonical.tauSymbol}\leanok
+  \uses{def:beta}
+  Define permutations of $\Tpos$ by
+  \[
+    \tau_1 = \beta_2^{-1}\beta_3, \qquad
+    \tau_2 = \beta_3^{-1}\beta_1, \qquad
+    \tau_3 = \beta_1^{-1}\beta_2,
+  \]
+  maps applied from left to right. The cycles of $\tau_1$, $\tau_2$, $\tau_3$
+  are the rows, columns, and symbols of $\Tpos$.
+\end{definition}
+
+\begin{lemma}[(T1) and coordinate preservation]\label{lem:T1}
+  \lean{LatinBitrade.Canonical.tau_product, LatinBitrade.Canonical.tauRow_preserves_row, LatinBitrade.Canonical.tauColumn_preserves_column, LatinBitrade.Canonical.tauSymbol_preserves_symbol}\leanok
+  \uses{def:tau}
+  $\tau_1\tau_2\tau_3 = 1$, and $\tau_1$ preserves rows, $\tau_2$ preserves
+  columns, $\tau_3$ preserves symbols.
+\end{lemma}
+\begin{proof}\leanok
+  Unfold the definitions; consecutive $\beta$'s cancel. Each $\tau_i$ is a
+  composite of two maps that both fix the $i$th coordinate.
+\end{proof}
+
+\begin{lemma}[(T3): fixed-point-freeness]\label{lem:T3}
+  \lean{LatinBitrade.Canonical.tauRow_fixedPointFree, LatinBitrade.Canonical.tauColumn_fixedPointFree, LatinBitrade.Canonical.tauSymbol_fixedPointFree}\leanok
+  \uses{def:tau, def:bitrade}
+  Each $\tau_i$ is fixed-point-free.
+\end{lemma}
+\begin{proof}\leanok
+  If $x\tau_1 = x$ then $y = x\beta_2^{-1} \in \Tneg$ satisfies
+  $y\beta_2 = y\beta_3 = x$, so $y$ agrees with $x$ in all three
+  coordinates and $x \in \Tpos \cap \Tneg$, contradicting (R1).
+\end{proof}
+
+\begin{lemma}[Order three; Equation (4)]\label{lem:order-three}
+  \lean{LatinBitrade.perm_pow_three_of_fiber_card_three, LatinBitrade.Canonical.tauRow_pow_three, LatinBitrade.Canonical.tauColumn_pow_three, LatinBitrade.Canonical.tauSymbol_pow_three}\leanok
+  \uses{lem:T1, lem:T3, def:homogeneous}
+  If $(\Tpos, \Tneg)$ is 3-homogeneous then $\tau_i^3 = 1$ for
+  $i = 1, 2, 3$.
+\end{lemma}
+\begin{proof}\leanok
+  $\tau_1$ permutes the three entries of each row without fixed points,
+  so it acts on each row as a 3-cycle. The Lean proof first rules out a
+  2-cycle inside a 3-element fibre, then shows $x, x\tau_1, x\tau_1^2$
+  exhaust the fibre.
+\end{proof}
+
+\begin{theorem}[Drápal; Theorem 2.4]\label{thm:drapal}
+  A bitrade is equivalent up to isotopism to three permutations satisfying
+  (T1), (T2), (T3), and it is primary if (T4) also holds.
+  \emph{Not formalised: the main theorem does not need it. Condition (T2)
+  is checked only for the worked example.}
+\end{theorem}
+
+\chapter{The Euclidean triangle group}
+
+\begin{definition}[The group $\Gamma$; Equation (3)]\label{def:gamma}
+  \lean{EuclideanTriangleGroup.TriangleGroup, EuclideanTriangleGroup.rho₁, EuclideanTriangleGroup.rho₂, EuclideanTriangleGroup.rho₃}\leanok
+  The paper takes
+  $\Gamma = \langle \rho_1, \rho_2, \rho_3 \mid
+    \rho_1^3 = \rho_2^3 = \rho_3^3 = \rho_1\rho_2\rho_3 = 1 \rangle$,
+  the orientation-preserving $(3,3,3)$ triangle group acting on the
+  triangular tessellation of the plane.
+  Lean uses the concrete model $\Z[\omega] \rtimes \Z/3$, with
+  $\Z[\omega] \cong \Z^2$ in the basis $(1, \omega)$ and $\Z/3$ acting by
+  multiplication by $\omega$. The generators are the affine maps
+  \[
+    \rho_1 \colon z \mapsto \omega z, \qquad
+    \rho_2 \colon z \mapsto \omega z + 1, \qquad
+    \rho_3 \colon z \mapsto \omega z + 1 + \omega,
+  \]
+  anticlockwise rotations by $2\pi/3$ about the three vertices
+  $0$, $(2 + \omega)/3$, $(1 + 2\omega)/3$ of one triangle.
+\end{definition}
+
+\begin{lemma}[Relations]\label{lem:rho-relations}
+  \lean{EuclideanTriangleGroup.rho_relations}\leanok
+  \uses{def:gamma}
+  $\rho_1^3 = \rho_2^3 = \rho_3^3 = \rho_1\rho_2\rho_3 = 1$ in the concrete
+  model.
+\end{lemma}
+\begin{proof}\leanok
+  By computation (\texttt{decide}).
+\end{proof}
+
+\begin{lemma}[Rotations are conjugate to generators]\label{lem:conjugate}
+  \lean{EuclideanTriangleGroup.conjugate_rotation_one, EuclideanTriangleGroup.rotation_one_conjugate_generator}\leanok
+  \uses{def:gamma}
+  Every element of $\Gamma$ whose rotational component is $\omega$ is
+  conjugate by a translation to one of $\rho_1$, $\rho_2$, $\rho_3$.
+  This is the algebraic replacement for Cases 1--4 in the proof of
+  Lemma 4.3 of the paper.
+\end{lemma}
+\begin{proof}\leanok
+  Conjugating $z \mapsto \omega z + (m + n\omega)$ by the translation
+  by $p + q\omega$ gives $z \mapsto \omega z + (m + p + q) + (n + 2q - p)\omega$.
+  The residue $m + n \bmod 3$ is invariant and equals $0, 1, 2$ on
+  $\rho_1, \rho_2, \rho_3$; choose $p, q$ to reach the representative.
+\end{proof}
+
+\begin{proposition}[The representation $\theta$; Equation (4)]\label{prop:theta}
+  \lean{EuclideanTriangleGroup.generator_relations_force_translations_commute, EuclideanTriangleGroup.triangleRepresentation, EuclideanTriangleGroup.triangleRepresentation_rho₁, EuclideanTriangleGroup.triangleRepresentation_rho₂, EuclideanTriangleGroup.triangleRepresentation_rho₃}\leanok
+  \uses{def:gamma}
+  Let $a, b, c$ be elements of a group $G$ with
+  $a^3 = b^3 = c^3 = abc = 1$. There is a homomorphism
+  $\theta \colon \Gamma \to G$ with $\rho_1 \mapsto a$, $\rho_2 \mapsto b$,
+  $\rho_3 \mapsto c$.
+\end{proposition}
+\begin{proof}\leanok
+  Put $u = ba^{-1}$ and $v = aua^{-1}$. From $b^3 = 1$ one gets
+  $ava^{-1} = (uv)^{-1}$, and from $c^3 = 1$ that $u$ and $v$ commute.
+  So $(u, v)$ is a lattice representation on which conjugation by $a$
+  acts as multiplication by $\omega$, and the universal property of the
+  semidirect product gives $\theta$.
+\end{proof}
+
+\chapter{The three-colouring}
+
+\begin{lemma}[Equivariant orbit maps; Lemma 4.1]\label{lem:orbit-map}
+  \lean{EquivariantOrbitMap.MapsStabilizer, EquivariantOrbitMap.exists_equivariant}\leanok
+  Let $\theta \colon \Gamma \to G$ be a homomorphism, $X$ a transitive
+  $\Gamma$-set with base point $x_0$, and $Y$ a $G$-set with base point
+  $y_0$. If $\theta$ maps the stabiliser of $x_0$ into the stabiliser of
+  $y_0$, then $\gamma \cdot x_0 \mapsto \theta(\gamma) \cdot y_0$ is a
+  well-defined equivariant map $X \to Y$.
+  The stabiliser hypothesis is exactly what the paper's proof of Lemma 4.1
+  leaves implicit; there it holds because $\Gamma$ acts freely on the
+  shaded triangles.
+\end{lemma}
+\begin{proof}\leanok
+  If $\gamma_1 x_0 = \gamma_2 x_0$ then $\gamma_2^{-1}\gamma_1$ fixes
+  $x_0$, so $\theta(\gamma_2^{-1}\gamma_1)$ fixes $y_0$ and the two
+  candidate values agree. Equivariance is the same computation.
+\end{proof}
+
+\begin{lemma}[Stabilisers are translations; Lemma 4.3]\label{lem:stabilizer}
+  \lean{EuclideanTriangleGroup.rotation_one_not_in_stabilizer, EuclideanTriangleGroup.stabilizer_has_trivial_rotation}\leanok
+  \uses{lem:conjugate}
+  Let $\Gamma$ act on a set $D$ so that $\rho_1$, $\rho_2$, $\rho_3$ have
+  no fixed points. Then every point stabiliser is contained in the
+  translation subgroup $\Z[\omega]$.
+\end{lemma}
+\begin{proof}\leanok
+  An element with rotational component $\omega$ fixing $x$ is conjugate
+  by a translation $t$ to some $\rho_i$, which then fixes $t \cdot x$.
+  The component $\omega^2$ case follows by taking inverses.
+\end{proof}
+
+\begin{theorem}[Three-colouring; Definition 4.2 and Corollary 4.5]\label{thm:coloring}
+  \lean{EuclideanTriangleGroup.exists_three_coloring_of_transitive, EuclideanTriangleGroup.exists_three_coloring, EuclideanTriangleGroup.permutations_admit_three_coloring}\leanok
+  \uses{lem:orbit-map, lem:stabilizer, prop:theta, lem:rho-relations}
+  Let $a, b, c$ be fixed-point-free permutations of a set $D$ with
+  $a^3 = b^3 = c^3 = abc = 1$. Then there is a colouring
+  $\chi \colon D \to \Z/3$ with
+  $\chi(ax) = \chi(bx) = \chi(cx) = \chi(x) + 1$ for all $x$.
+  Neither (T2) nor transitivity (T4) is needed: the colouring is built on
+  each orbit separately.
+\end{theorem}
+\begin{proof}\leanok
+  Let $\Gamma$ act on $D$ through $\theta$. On the orbit of $x_0$ define
+  $\chi(\gamma \cdot x_0)$ to be the rotational component of $\gamma$.
+  By Lemma~\ref{lem:stabilizer} the stabiliser of $x_0$ has trivial
+  rotational component, so Lemma~\ref{lem:orbit-map} applied to the
+  projection $\Gamma \to \Z/3$ shows $\chi$ is well defined. Each $\rho_i$
+  has rotational component $1$, so it advances $\chi$ by one.
+\end{proof}
+
+\chapter{Transversals}
+
+\begin{lemma}[Colour classes are transversals; Lemma 4.6]\label{lem:classes}
+  \lean{LatinBitrade.CyclesFibers, LatinBitrade.cyclesFibers_of_card_three, LatinBitrade.color_class_fiber_card, LatinBitrade.three_homogeneous_permutation_partition}\leanok
+  \uses{thm:coloring, def:transversal}
+  Let $\tau_1, \tau_2, \tau_3$ be fixed-point-free permutations of order
+  three of a finite set $D$ with $\tau_3\tau_2\tau_1 = 1$ (Lean order),
+  preserving coordinates $\mathrm{row}$, $\mathrm{col}$, $\mathrm{sym}$
+  whose fibres all have three elements. Then the three colour classes of
+  Theorem~\ref{thm:coloring} each meet every fibre of every coordinate
+  exactly once, are pairwise disjoint, and cover $D$.
+\end{lemma}
+\begin{proof}\leanok
+  A fibre of $\mathrm{row}$ is $\{x, x\tau_1, x\tau_1^2\}$, whose colours
+  are $\chi(x), \chi(x) + 1, \chi(x) + 2$. So each colour occurs exactly
+  once per fibre. The same holds for columns and symbols.
+\end{proof}
+
+\begin{lemma}[Transfer to entries]\label{lem:transfer}
+  \lean{LatinBitrade.forgetDarts_isTransversal, LatinBitrade.coordinatePartition_isThreeTransversalPartition, LatinBitrade.exists_three_transversal_partition_from_permutations}\leanok
+  \uses{lem:classes, def:transversal, def:homogeneous}
+  A partition of the entries of $\Tpos$, regarded as an abstract dart set,
+  into three coordinate transversals is a partition of $\Tpos$ into three
+  transversals in the sense of Definition~\ref{def:transversal}.
+\end{lemma}
+\begin{proof}\leanok
+  Forget the membership proofs. The symbol-count clause follows from
+  injectivity of the symbol map on each class.
+\end{proof}
+
+\begin{theorem}[Cavenagh; Theorem 1.1]\label{thm:main}
+  \lean{LatinBitrade.theorem_1_1}\leanok
+  \uses{def:bitrade, def:homogeneous, def:transversal}
+  Let $(\Tpos, \Tneg)$ be a 3-homogeneous bitrade. Then $\Tpos$ can be
+  partitioned into three transversals.
+\end{theorem}
+\begin{proof}\leanok
+  \uses{lem:T1, lem:T3, lem:order-three, lem:transfer}
+  Apply Lemma~\ref{lem:transfer} to $\tau_1, \tau_2, \tau_3$ of
+  Definition~\ref{def:tau}. The hypotheses are supplied by
+  Lemmas~\ref{lem:T1}, \ref{lem:T3}, and \ref{lem:order-three}.
+\end{proof}
+
+\begin{lemma}[Tessellation on the torus; Lemma 3.5]\label{lem:torus}
+  \uses{def:tau}
+  A 3-homogeneous bitrade defines a tessellation of the Euclidean plane by
+  shaded and unshaded triangles, whose quotient is a torus.
+  \emph{Not formalised: the geometric picture is replaced by
+  Definition~\ref{def:gamma} and Lemma~\ref{lem:stabilizer}.}
+\end{lemma}
+
+\chapter{The worked example}
+
+\begin{proposition}[Example 2.6 and its transversals]\label{prop:example}
+  \lean{LatinBitrade.PaperExample.equation2_is_bitrade, LatinBitrade.PaperExample.equation2_is_three_homogeneous, LatinBitrade.PaperExample.displayed_partition_is_valid}\leanok
+  \uses{def:bitrade, def:homogeneous, def:transversal}
+  The two arrays of Equation (2) form a 3-homogeneous bitrade, and the
+  three sets displayed after Lemma 3.5 partition $\Tpos$ into
+  transversals.
+\end{proposition}
+\begin{proof}\leanok
+  Kernel computation on the twelve entries (\texttt{decide}).
+\end{proof}
+
+\begin{proposition}[The printed $\tau_i$ satisfy (T1)--(T4)]\label{prop:example-tau}
+  \lean{LatinBitrade.PaperExample.tau_equation_from_betas, LatinBitrade.PaperExample.tau_product_identity, LatinBitrade.PaperExample.tau_cycles_pairwise_disjoint, LatinBitrade.PaperExample.tau_fixedPointFree, LatinBitrade.PaperExample.tau_action_transitive}\leanok
+  \uses{prop:example, def:tau}
+  The permutations printed after Equation (2) are those of Equation (1),
+  and they satisfy (T1), (T2), (T3), and (T4).
+\end{proposition}
+\begin{proof}\leanok
+  Kernel computation. Transitivity is certified by an explicit word in
+  the generators for every ordered pair of darts.
+\end{proof}

@@ -1,0 +1,18 @@
+% Macros used only by the print version. The blueprint-specific macros
+% (\lean, \leanok, \uses, ...) only mean something to plasTeX, so the
+% print version defines them as no-ops.
+\newcommand{\lean}[1]{}
+\newcommand{\discussion}[1]{}
+\newcommand{\leanok}{}
+\newcommand{\mathlibok}{}
+\newcommand{\notready}{}
+% \uses and \proves take label lists; reference them invisibly so LaTeX
+% warns about any label that does not exist.
+\ExplSyntaxOn
+\NewDocumentCommand{\uses}{m}
+ {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+  \ignorespaces}
+\NewDocumentCommand{\proves}{m}
+ {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+  \ignorespaces}
+\ExplSyntaxOff
