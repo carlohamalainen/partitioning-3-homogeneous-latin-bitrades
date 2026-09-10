@@ -1,6 +1,6 @@
 # Formal verification of *Partitioning 3-homogeneous latin bitrades*
 
-This Lean 4 project formalizes claims from `3hom.tex`.
+This Lean 4 project formalizes claims from `arXiv-0710.0938v3/3hom.tex`, the arXiv source of the paper.
 
 Lean now checks the paper's main result.  The formal statement is
 `LatinBitrade.theorem_1_1` in

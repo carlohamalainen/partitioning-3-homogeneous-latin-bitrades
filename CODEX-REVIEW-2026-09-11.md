@@ -2,7 +2,7 @@
 
 Date: 11 September 2026
 
-This review compares the proof in [`3hom.tex`](3hom.tex) with its Lean 4
+This review compares the proof in [`3hom.tex`](arXiv-0710.0938v3/3hom.tex) with its Lean 4
 formalization in this repository. It records both the initial proof audit and
 the assessment after the main theorem had been checked end to end.
 
@@ -21,9 +21,9 @@ paper.
 
 Lemma 3.1 starts with an arbitrary 3-homogeneous bitrade, but its proof invokes
 both (T1) and (T4), including transitivity
-([`3hom.tex`, lines 585–608](3hom.tex#L585-L608)). Later, the proof says, “By
+([`3hom.tex`, lines 585–608](arXiv-0710.0938v3/3hom.tex#L585-L608)). Later, the proof says, “By
 assumption,” that the cartographic group acts transitively on the positive
-trade ([`3hom.tex`, lines 1066–1075](3hom.tex#L1066-L1075)). No such assumption
+trade ([`3hom.tex`, lines 1066–1075](arXiv-0710.0938v3/3hom.tex#L1066-L1075)). No such assumption
 appears in Theorem 1.1.
 
 This is a genuine scope gap. A disjoint union of two 3-homogeneous bitrades is
@@ -53,7 +53,7 @@ theta(StabΓ(t₀)) ⊆ StabG(x₀).
 
 Instead, after observing that `δ₁ δ₂⁻¹` fixes `t₀`, the paper simply
 asserts that its image fixes `x₀`
-([`3hom.tex`, lines 741–758](3hom.tex#L741-L758)). That assertion is the missing
+([`3hom.tex`, lines 741–758](arXiv-0710.0938v3/3hom.tex#L741-L758)). That assertion is the missing
 stabilizer condition itself, so the argument is circular at this point. A
 homomorphism between acting groups does not supply such an equivariant orbit
 map automatically.
@@ -72,7 +72,7 @@ Case 1 contains distance calculations and several local configurations. Cases
 2, 3, and 4 are described as “very similar”; the paper lists words in the
 generators for their `a` and `b` subcases, but gives neither the corresponding
 distance inequalities nor the finite contradictions required for their `c`
-subcases ([`3hom.tex`, lines 1002–1040](3hom.tex#L1002-L1040)). Consequently,
+subcases ([`3hom.tex`, lines 1002–1040](arXiv-0710.0938v3/3hom.tex#L1002-L1040)). Consequently,
 the printed case analysis is not a complete proof of the disjointness lemma.
 
 The Lean development avoids fragile Euclidean case splitting. It models the
@@ -88,7 +88,7 @@ This supplies all cases uniformly.
 The closing argument explains geometrically why inconsistent labels should
 produce a contradiction, but it does not explicitly prove that each colour
 class contains exactly one entry in every row and column and has no repeated
-symbol ([`3hom.tex`, lines 1078–1102](3hom.tex#L1078-L1102)). These conclusions
+symbol ([`3hom.tex`, lines 1078–1102](arXiv-0710.0938v3/3hom.tex#L1078-L1102)). These conclusions
 are plausible once the colouring is established, but the required existence,
 uniqueness, disjointness, and coverage arguments are compressed into a few
 sentences.
@@ -123,15 +123,15 @@ The significant issues are:
 
 - **Unjustified transitivity.** The paper starts with an arbitrary
   3-homogeneous bitrade but invokes (T4), transitivity, in Lemma 3.1
-  ([`3hom.tex`](3hom.tex#L598)) and later says transitivity holds “by
-  assumption” ([`3hom.tex`](3hom.tex#L1069)). It was never assumed; a disjoint
+  ([`3hom.tex`](arXiv-0710.0938v3/3hom.tex#L598)) and later says transitivity holds “by
+  assumption” ([`3hom.tex`](arXiv-0710.0938v3/3hom.tex#L1069)). It was never assumed; a disjoint
   union of bitrades is an immediate nontransitive example. Thus the printed
   proof directly covers only the primary/connected case. Lean repairs this by
   colouring each group-action orbit independently in
   [`ThreeColoring.lean`](Partitioning3Homogeneous/ThreeColoring.lean#L115).
 
 - **The map `psi` is not proved well-defined.** At
-  [`3hom.tex`](3hom.tex#L744), the proof assumes that if a group element fixes
+  [`3hom.tex`](arXiv-0710.0938v3/3hom.tex#L744), the proof assumes that if a group element fixes
   `t₀`, its image under `theta` fixes `x₀`. That is precisely the missing
   condition:
 
@@ -147,14 +147,14 @@ The significant issues are:
 
 - **Cases 2–4 are only announced, not proved.** After treating Case 1, the
   paper merely lists the transformations for the remaining cases
-  ([`3hom.tex`](3hom.tex#L1002)); the distance inequalities and finite `c`
+  ([`3hom.tex`](arXiv-0710.0938v3/3hom.tex#L1002)); the distance inequalities and finite `c`
   configurations are absent. Lean replaces the whole geometric case split
   with an integer-lattice theorem showing every relevant rotation is
   conjugate to one of the three vertex rotations
   ([`TriangleGroup.lean`](Partitioning3Homogeneous/TriangleGroup.lean#L142)).
 
 - **The final transversal argument is compressed.** The discussion at
-  [`3hom.tex`](3hom.tex#L1083) argues informally about consistent labels but
+  [`3hom.tex`](arXiv-0710.0938v3/3hom.tex#L1083) argues informally about consistent labels but
   does not explicitly establish the required exactly-one cardinalities for
   every row, column, and symbol. Lean proves these fibre cardinalities and the
   disjoint covering directly.

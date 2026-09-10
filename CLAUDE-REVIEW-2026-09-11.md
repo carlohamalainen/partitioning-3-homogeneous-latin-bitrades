@@ -5,7 +5,7 @@
 | **Date** | 2026-09-11 |
 | **Reviewer** | Claude (Fable 5.1), run through Claude Code at the request of the paper's author |
 | **Revision reviewed** | commit `32775a9` ("codex attempt"), working tree clean |
-| **Paper** | `3hom.tex`, C. Hämäläinen, *Partitioning 3-homogeneous latin bitrades* (arXiv:0710.0938) |
+| **Paper** | `arXiv-0710.0938v3/3hom.tex`, C. Hämäläinen, *Partitioning 3-homogeneous latin bitrades* (arXiv:0710.0938) |
 | **Toolchain** | Lean `v4.34.0-rc2`, Mathlib `v4.34.0-rc2` (rev `85e3a25e`) |
 | **Formalisation author** | another LLM; this review is independent of it |
 
@@ -208,7 +208,7 @@ This is the heart of the formalisation.
 
 ### `PaperExample.lean` and `TauExample.lean` (Example 2.6)
 
-I checked the transcription against `3hom.tex` entry by entry.
+I checked the transcription against `arXiv-0710.0938v3/3hom.tex` entry by entry.
 
 - Equation (2), T◇ (rows 1 to 4): {111, 123, 142}, {213, 222, 234},
   {324, 333, 341}, {412, 431, 444}. T⊗: {113, 122, 141}, {212, 224, 233},
