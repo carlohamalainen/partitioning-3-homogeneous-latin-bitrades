@@ -18,6 +18,8 @@ Codex's initial review, formalisation, and final review: [CODEX-REVIEW-2026-09-1
 
 Claude reviewing Codex: [CLAUDE-REVIEW-2026-09-11.md](CLAUDE-REVIEW-2026-09-11.md)
 
+The main theorem:
+
 ```lean
 theorem theorem_1_1
     (positive negative : Finset (Entry Row Column Symbol))
